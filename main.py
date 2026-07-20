@@ -5,6 +5,8 @@ tasks =[
     {"id": 2, "title": "Finish report", "done": False},
     {"id": 3, "title": "Walk the dog", "done": True}
     ]
+def get_current_id():   
+    return len(tasks)
 app = FastAPI()
 
 @app.get("/")
@@ -22,6 +24,21 @@ def get_task_by_id(id:int):
             return {"task" : task for task in tasks if task.get("id") == id }
     return {"status" : 404,
             "error" : f"Task {id} not found."}
+    
+@app.post("/tasks/")
+def post_task(title:str):
+    if title and title.strip(" "):
+        next_id = get_current_id() + 1
+        done = False
+        tasks.append({"id" : int(next_id) ,"title" : title, "done" : done})
+        return {"Status"  : 201}
+    return {"status" : 400}
+
+
+@app.get("/util/get_current_id")
+def _get_current_id():
+    return {"next id" : get_current_id()}
+
 
 @app.get("/heath")
 def get_health():
