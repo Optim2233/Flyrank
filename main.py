@@ -1,11 +1,35 @@
 from fastapi import FastAPI
 from typing import Optional
 import re
+import sqlite3
+
+
 tasks =[
     {"id": 1, "title": "Buy groceries", "done": False},
     {"id": 2, "title": "Finish report", "done": False},
     {"id": 3, "title": "Walk the dog", "done": True}
     ]
+
+conn = sqlite3.connect("tasks.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+               CREATE TABLE IF NOT EXISTS tasks(
+                   id INTEGER PRIMARY KEY AUTOINCREMENT,
+                   title TEXT NOT NULL,
+                   done BOOLEAN NOT NULL
+                   )
+                   """)
+count = cursor.execute("SELECT COUNT(*) FROM tasks")
+if count == 0:
+    cursor.executemany("INSERT INTO tasks VALUES(:id,:title,:done)", tasks)
+
+conn.commit()
+
+for row in cursor.execute("SELECT title, done FROM tasks"):
+    print(row)
+
+
 
 tags_metadata = [
     {
