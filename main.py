@@ -5,19 +5,47 @@ tasks =[
     {"id": 2, "title": "Finish report", "done": False},
     {"id": 3, "title": "Walk the dog", "done": True}
     ]
+
+tags_metadata = [
+    {
+        "name"  : "get tasks",
+        "description" : "Get the existing tasks"
+    },
+    {
+        "name" : "get task by id",
+        "description": "Get task by id from existing tasks"
+    },
+    {
+        "name" : "create task",
+        "description":"create task "
+    },
+    {
+        "name" : "update task",
+        "description" : "update existing task"
+    },
+    {
+        "name" : "get the pointer location of current id",
+        "description" : "helper fucntion made api end point"
+    },
+    {
+        "name": "health",
+        "description" :"health check"
+    }
+]
+
 def get_current_id():   
     return len(tasks)
-app = FastAPI()
+app = FastAPI(openapi_tags=tags_metadata)
 
 @app.get("/")
 def root():
     return {"message" : "Hello World"}
 
-@app.get("/tasks")
+@app.get("/tasks",tags=["get tasks"])
 def get_tasks():
     return {"tasks" : tasks}
 
-@app.get("/tasks/{id}")
+@app.get("/tasks/{id}",tags=["get task by id"])
 def get_task_by_id(id:int):
     for task in tasks:
         if task.get("id") == id:
@@ -25,7 +53,7 @@ def get_task_by_id(id:int):
     return {"status" : 404,
             "error" : f"Task {id} not found."}
     
-@app.post("/tasks/")
+@app.post("/tasks/", tags=["create task"])
 def post_task(title:str):
     if title and title.strip(" "):
         next_id = get_current_id() + 1
@@ -34,7 +62,7 @@ def post_task(title:str):
         return {"Status"  : 201}
     return {"status" : 400}
 
-@app.put("/tasks/:id")
+@app.put("/tasks/{id}", tags=["update task"])
 def update_task(id: int, title : str, done : str):
     if title and title.strip(" ") and done and done.strip(" "):
         for task in tasks:
@@ -47,11 +75,11 @@ def update_task(id: int, title : str, done : str):
         
         
 
-@app.get("/util/get_current_id")
+@app.get("/util/get_current_id", tags=["get the pointer location of current id"])
 def _get_current_id():
     return {"next id" : get_current_id()}
 
 
-@app.get("/heath")
+@app.get("/heath", tags=["health"])
 def get_health():
     return {"status" : "ok"}
