@@ -34,6 +34,18 @@ def post_task(title:str):
         return {"Status"  : 201}
     return {"status" : 400}
 
+@app.put("/tasks/:id")
+def update_task(id: int, title : str, done : str):
+    if title and title.strip(" ") and done and done.strip(" "):
+        for task in tasks:
+            if id == task.get("id"):
+                task["title"] = title
+                task["done"] = done 
+                return {"status" : 204}
+        return {"status" : 404}
+    return {"status" : 400}
+        
+        
 
 @app.get("/util/get_current_id")
 def _get_current_id():
