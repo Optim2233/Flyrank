@@ -25,9 +25,10 @@ if count == 0:
     cursor.executemany("INSERT INTO tasks VALUES(:id,:title,:done)", tasks)
 
 conn.commit()
-
 for row in cursor.execute("SELECT title, done FROM tasks"):
     print(row)
+conn.close()
+
 
 
 
@@ -117,7 +118,9 @@ def post_task(title:str):
         new_task = {"id" : next_id, "title" : title, "done" : bool(False)}
         cursor.execute(query,new_task)
         conn.commit()
+        conn.close()
         return {"Status"  : 201}
+    conn.close()
     return {"status" : 400}
 
 @app.put("/tasks/{id}", tags=["update task"])
@@ -132,6 +135,7 @@ def update_task(id: int, title : str, done : bool):
         return {"status " : 404}
     elif cursor.rowcount >= 1:
         conn.commit()
+        conn.close()
         return {"status" : 204}
     conn.close()
     return {"status" : 400}
