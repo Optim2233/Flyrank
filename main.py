@@ -122,13 +122,18 @@ def post_task(title:str):
 
 @app.put("/tasks/{id}", tags=["update task"])
 def update_task(id: int, title : str, done : bool):
-    if title and title.strip(" ") and done != None:
-        for task in tasks:
-            if task.get("id") == id:
-                task["title"] = title
-                task["done"] = done 
-                return {"status" : 204}
-        return {"status" : 404}
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    query = "UPDATE tasks SET title = ? , done = ? WHERE id = ?"
+    params = [title,done,id]
+    cursor.execute(query,params)
+    if cursor.rowcount == 0:
+        conn.close()
+        return {"status " : 404}
+    elif cursor.rowcount >= 1:
+        conn.commit()
+        return {"status" : 204}
+    conn.close()
     return {"status" : 400}
         
 
@@ -154,3 +159,20 @@ def get_stats( ):
         "total" : len(tasks),
         "done" : len(done_tasks),
         "open" : len(open_tasks)}
+    
+@app.delete("/tasks/delete_tasks", tags=["delete tasks"])
+def delete_tasks(id : int ):
+    conn = sqlite3.connect("tasks.db")  
+    cursor = conn.cursor()
+    query = "DELETE FROM tasks WHERE id = ?"
+    params = [id]
+    cursor.execute(query,params)
+    if cursor.rowcount == 0:
+        return {"status" : 404}
+    conn.commit()
+    conn.close() 
+    return {"status" : 204}
+    
+    
+    
+    
