@@ -72,27 +72,40 @@ def root():
 
 @app.get("/tasks/{id}",tags=["get task by id"])
 def get_task_by_id(id:int):
-    for task in tasks:
-        if task.get("id") == id:
-            return {"task" : task for task in tasks if task.get("id") == id }
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    query = "SELECT * FROM tasks WHERE id = ?"
+    params = [id]
+    cursor.execute(query,params)
+    rows = cursor.fetchone()
+    conn.close()
+    if rows:
+        return {"id": rows[0], "title": rows[1], "done" : rows[2]}
     return {"status" : 404,
             "error" : f"Task {id} not found."}
     
 
 @app.get("/tasks", tags=["get tasks"])
 def get_done_task(search_term : str = " " ,done: Optional[bool] = None):
-    if done == None and not search_term.strip(" "):
-        return {"tasks" : tasks}
-    elif done == None and search_term.strip(" "):
-        filtered = [task for task in tasks  if re.search(re.escape(search_term), task["title"], re.IGNORECASE)]
-    elif done != None and not search_term.strip(" "):
-        filtered = [task for task in tasks if task.get("done") == done]
-    else : 
-        filtered = [ task for task in tasks if task.get("done") == done and re.search(re.escape(search_term), task["title"], re.IGNORECASE) ]
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    query = "SELECT * FROM tasks WHERE 1=1"
+    parameter = []
+    if search_term.strip():
+        query += " AND title LIKE ?" 
+        parameter.append(f"%{search_term.strip()}%")
+    if done is not None:
+        query += " AND done = ?"
+        parameter.append(done)
+        
+    cursor.execute(query,parameter) 
+    rows = cursor.fetchall()
+    conn.close()
+    tasks = [{"id" : r[0], "title": r[1], "done": bool(r[2])} for r in rows]
     
-    return {"tasks" : filtered}
+    return {"tasks" : tasks}
     
-@app.post("/tasks/", tags=["create task"])
+@app.post("/tasks/post_tasks", tags=["create task"])
 def post_task(title:str):
     if title and title.strip(" "):
         next_id = get_current_id() + 1
