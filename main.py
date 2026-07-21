@@ -107,10 +107,16 @@ def get_done_task(search_term : str = " " ,done: Optional[bool] = None):
     
 @app.post("/tasks/post_tasks", tags=["create task"])
 def post_task(title:str):
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    id = get_current_id()
+    
     if title and title.strip(" "):
         next_id = get_current_id() + 1
-        done = False
-        tasks.append({"id" : int(next_id) ,"title" : title, "done" : done})
+        query = f"INSERT INTO tasks VALUES(:id,:title,:done)"
+        new_task = {"id" : next_id, "title" : title, "done" : bool(False)}
+        cursor.execute(query,new_task)
+        conn.commit()
         return {"Status"  : 201}
     return {"status" : 400}
 
